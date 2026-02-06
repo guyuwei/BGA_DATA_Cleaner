@@ -45,3 +45,28 @@ jobs:
         with:
           name: EHR-dmg
           path: dist_release/EHR数据清洗.dmg
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build Windows release
+        run: |
+          build\build.bat
+
+      - name: Package zip
+        run: |
+          powershell -Command "Compress-Archive -Path dist_release\EHR数据清洗\* -DestinationPath dist_release\EHR-Windows.zip -Force"
+
+      - name: Upload Windows zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: EHR-windows
+          path: dist_release/EHR-Windows.zip
