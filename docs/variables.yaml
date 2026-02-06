@@ -1,0 +1,1229 @@
+meta:
+  description: 变量定义表（用于写作和建模对齐）
+  version: "v3.4（Lin Qiu's Thesis）"
+  language: zh-CN
+  author: Yuwei Gu
+  created_date: "2026-01-29"
+  last_updated: "2026-02-03"
+
+  related_file: rules.yaml
+  reference_doc: "variables.docx 附录B"
+  note: "变量名和具体解释来自variables.docx附录B表格，合并症与降糖药物变量已补充 data_reference"
+  
+  data_category:
+    static: "静态数据 - 患者基本信息，住院期间不变化"
+    dynamic: "动态数据 - 随时间变化的指标，如实验室检查、生命体征、药物使用等"
+    glucose_trajectory: "24h血糖轨迹特征 - 从24小时血糖时间序列中提取的特征"
+  
+  field_descriptions:
+    name:
+      description: "变量名，来自variables.docx附录B表格的'变量名'列"
+      example: "性别、年龄、TBIL、INPMEAN等"
+      usage: "用于标识变量，保持与文档一致"
+    
+    abbreviation:
+      description: "英文缩写，用于代码和建模"
+      example: "Sex、Age、TBIL、INPMEAN等"
+      usage: "代码中使用的变量名，与data_in_models字段值一致"
+    
+    description:
+      description: "具体解释，来自variables.docx附录B表格的'具体解释'列"
+      example: "患者性别、入院时的年龄等"
+      usage: "用于写作和文档说明"
+    
+    data_category:
+      description: "数据分类：静态数据/动态数据/24h血糖轨迹特征"
+      values:
+        static: "静态数据 - 患者基本信息，住院期间不变化（如：人口学信息、合并疾病）"
+        dynamic: "动态数据 - 随时间变化的指标（如：实验室检查、生命体征、药物使用、血糖衍生指标、住院相关指标）"
+        glucose_trajectory: "24h血糖轨迹特征 - 从24小时血糖时间序列中提取的特征（如：血糖变化、振幅、趋势等）"
+      usage: "用于变量分类和建模时的特征分组"
+    
+    data_type:
+      description: "数据类型，包含变量类型和编码信息（用于代码实现）"
+      examples:
+        binary: "二元类别变量 (0=无, 1=有) 或 二元类别变量 (0=女, 1=男)"
+        continuous: "浮点型数值变量、整数型数值变量"
+      usage: "binary变量的编码信息包含在data_type字段中，便于代码实现时进行热值编码"
+    
+    data_in_ehr:
+      description: "EHR中的原始数据，待从CSV文件逐一检查后补充"
+      note: "需要检查每个CSV文件，确定变量在EHR中的原始列名和格式"
+      usage: "用于数据提取和清洗"
+    
+    data_in_models:
+      description: "代码用，建模中的表示方式，使用英文缩写（大写）"
+      example: "SEX、AGE、TBIL、INPMEAN、GLUCOSE_CHANGE等"
+      usage: "在代码中直接使用此字段的值作为变量名，所有值均为大写"
+    
+    missing_percent:
+      description: "缺失率（百分比）"
+      example: "0.0、19.14、76.8等"
+      usage: "用于评估数据质量和决定插补策略"
+    
+    imputation_strategy:
+      description: "插补策略"
+      values:
+        - "N/A - 无缺失，无需插补"
+        - "Mode / Baseline - 使用基线数据或最频繁类别插补"
+        - "Median/Baseline - 使用中位数或基线值插补"
+        - "Multiple Imputation - 多重插补"
+        - "Forward fill / Multiple Imputation - 前向填充或多重插补"
+        - "Forward fill - 前向填充"
+        - "Excluded - 缺失率>25%，建模中排除"
+      usage: "用于处理缺失数据"
+    
+    data_reference:
+      description: "数据来源，列出所有包含该变量的CSV文件路径"
+      format: "数组格式，包含相对路径或绝对路径"
+      example: 
+        - "指标数据_基线数据_1家医院_分组1_低血糖预测模型-正常血糖1_2024-04-06 140118_10/基线数据.test_全部诊断.csv"
+        - "指标数据_基线数据_1家医院_分组1_低血糖风险预测模型-低血糖_2024-04-06 140331_83/基线数据.低血糖_全部诊断.csv"
+      usage: "用于追溯数据来源，待从CSV文件逐一检查后补充"
+
+# =========================
+# 1. 人口学信息 (Demographics)
+# =========================
+demographics_variables:
+  性别:
+    name: 性别
+    abbreviation: Sex
+    description: 患者性别
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=女, 1=男)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: SEX
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference: []
+    
+  吸烟史:
+    name: 吸烟史
+    abbreviation: Smoking
+    description: 患者入院时是否报告抽烟史
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: SMOKING
+    missing_percent: 0.5
+    imputation_strategy: "Mode / Baseline"
+    data_reference: []
+    
+  饮酒史:
+    name: 饮酒史
+    abbreviation: Drinking
+    description: 患者入院时是否报告饮酒史
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: DRINKING
+    missing_percent: 0.5
+    imputation_strategy: "Mode / Baseline"
+    data_reference: []
+    
+  年龄:
+    name: 年龄
+    abbreviation: Age
+    description: 入院时的年龄
+    data_category: 静态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: AGE
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference: []
+    
+  体重:
+    name: 体重
+    abbreviation: Weight
+    description: 入院时的体重
+    data_category: 静态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: WEIGHT
+    missing_percent: 0.5
+    imputation_strategy: "Median/Baseline"
+    data_reference: []
+    
+  身高:
+    name: 身高
+    abbreviation: Height
+    description: 入院时的身高
+    data_category: 静态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: HEIGHT
+    missing_percent: 0.5
+    imputation_strategy: "Median/Baseline"
+    data_reference: []
+    
+  BMI:
+    name: BMI
+    abbreviation: BMI
+    description: 入院时身体质量指数（计算公式kg/m2）
+    data_category: 静态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: BMI
+    missing_percent: 0.6
+    imputation_strategy: "Median/Baseline"
+    data_reference: []
+
+# =========================
+# 2. 合并疾病 (Comorbidities)
+# =========================
+comorbidities_variables:
+  高血压:
+    name: 高血压
+    abbreviation: HTN
+    description: 所有ICD10分类下的高血压诊断（I10），及出/入院中诊断包含"高血压"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: HTN
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  高脂血症:
+    name: 高脂血症
+    abbreviation: HLD
+    description: 所有ICD10分类下的高脂血症诊断（E78），及出/入院中包含"高脂血症"或"高胆固醇"或"甘油三酯"或"血脂异常"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: HLD
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  冠心病:
+    name: 冠心病
+    abbreviation: CAD
+    description: 所有ICD分类下的冠心病诊断（I25），及出/入院中包含"冠状动脉"或"冠心病"或"心肌梗死"或"心绞痛"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: CAD
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  恶性肿瘤:
+    name: 恶性肿瘤
+    abbreviation: Malignancy
+    description: 所有ICD分类中头颈部（C00-C14）、消化系统（C15-C26）、呼吸系统（C30-C39）、泌尿生殖系统（C64-C68）、女性生殖系统（C50-C58）、男性生殖系统（C60-C63）、血液淋巴系统（C81-C96）及其他部位类别下的恶性肿瘤，及出/入诊断中包含"恶性肿瘤"或"癌"或"肉瘤"或"白血病"或"淋巴瘤"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: MALIGNANCY
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  慢性肾衰竭:
+    name: 慢性肾衰竭
+    abbreviation: CRF
+    description: 所有ICD10分类下的慢性肾衰竭诊断（N18），及出/入诊断中包含"慢性肾衰"或"尿毒症"或"慢性肾脏病4期"或"慢性肾脏病5期"或"慢性肾脏病 4期"或"慢性肾脏病 5期"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: CRF
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  肾脏替代治疗:
+    name: 肾脏替代治疗
+    abbreviation: RRT
+    description: 所有ICD10分类下的肾脏替代治疗诊断（Z49、Z99），及出/入院诊断中包含"透析"或"肾移植"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: RRT
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  糖尿病周围血管病变:
+    name: 糖尿病周围血管病变
+    abbreviation: DPVD
+    description: 所有ICD10分类下的糖尿病周围血管病变（E11.5、E14.5、E10.5），及出/入院诊断中包含"糖尿病"且包含"血管病"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，AND逻辑关键词匹配"
+    data_in_models: DPVD
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  糖尿病周围神经病变:
+    name: 糖尿病周围神经病变
+    abbreviation: DPN
+    description: 所有ICD10分类下的糖尿病周围神经病变（E11.4、E14.4、E10.4），及出/入院诊断中包含"糖尿病"且包含"神经病"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，AND逻辑关键词匹配"
+    data_in_models: DPN
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  糖尿病足:
+    name: 糖尿病足
+    abbreviation: DF
+    description: 所有ICD10分类下的糖尿病足诊断（E11.5、E14.5、E10.5），及出/入院诊断中包含"糖尿病"且包含"足"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，AND逻辑关键词匹配"
+    data_in_models: DF
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  糖尿病肾病:
+    name: 糖尿病肾病
+    abbreviation: DN
+    description: 所有ICD10分类下的糖尿病肾病诊断（E14.2、E11.2、E10.2），及出/入院诊断中包含"糖尿病"且包含"肾病"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，AND逻辑关键词匹配"
+    data_in_models: DN
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  糖尿病视网膜病变:
+    name: 糖尿病视网膜病变
+    abbreviation: DR
+    description: 所有ICD10分类下的糖尿病视网膜病变（E14.3、E11.3、E10.3），及出/入院诊断中包含"糖尿病"且包含"视网膜"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，AND逻辑关键词匹配"
+    data_in_models: DR
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  1型糖尿病:
+    name: 1型糖尿病
+    abbreviation: T1DM
+    description: 所有ICD10分类下的1型糖尿病（E10.900），及出/入院诊断中包含"1型糖尿病"或"I型糖尿病"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: T1DM
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+    
+  脑血管意外:
+    name: 脑血管意外
+    abbreviation: "Cerebrovascular Event"
+    description: 出/入院诊断中包含"脑卒中"或"脑血管意外"或"脑梗"或"脑出血"或"蛛网膜下腔出血"或"脑缺血"
+    data_category: 静态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "诊断.csv:disease_name，关键词匹配"
+    data_in_models: CEREBROVASCULAR_EVENT
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/诊断.csv"
+      - "HYPO/诊断.csv"
+
+# =========================
+# 3. 实验室相关指标 (Laboratory)
+# =========================
+laboratory_variables:
+  TBIL:
+    name: TBIL
+    abbreviation: TBIL
+    description: 观察日前一天的总胆红素值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: TBIL
+    missing_percent: 19.14
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  TC:
+    name: TC
+    abbreviation: TC
+    description: 观察日前一天的总胆固醇值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: TC
+    missing_percent: 78.4
+    imputation_strategy: "Excluded"
+    note: "缺失率>25%，建模中排除"
+    data_reference: []
+    
+  TG:
+    name: TG
+    abbreviation: TG
+    description: 观察日前一天的甘油三酯值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: TG
+    missing_percent: 76.8
+    imputation_strategy: "Excluded"
+    note: "缺失率>25%，建模中排除"
+    data_reference: []
+    
+  HDL:
+    name: HDL
+    abbreviation: HDL
+    description: 观察日前一天的高密度脂蛋白胆固醇值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: HDL
+    missing_percent: 75.9
+    imputation_strategy: "Excluded"
+    note: "缺失率>25%，建模中排除"
+    data_reference: []
+    
+  LDL:
+    name: LDL
+    abbreviation: LDL
+    description: 观察日前一天的低密度脂蛋白胆固醇值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: LDL
+    missing_percent: 76.8
+    imputation_strategy: "Excluded"
+    note: "缺失率>25%，建模中排除"
+    data_reference: []
+    
+  血钠:
+    name: 血钠
+    abbreviation: "Na⁺"
+    description: 观察日前一天的血钠值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "NA⁺"
+    missing_percent: 18.01
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  血钾:
+    name: 血钾
+    abbreviation: "K⁺"
+    description: 观察日前一天的血钾值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "K⁺"
+    missing_percent: 18.04
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  RBC:
+    name: RBC
+    abbreviation: RBC
+    description: 观察日前一天的红细胞计数值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: RBC
+    missing_percent: 17.89
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  WBC:
+    name: WBC
+    abbreviation: WBC
+    description: 观察日前一天的白细胞计数值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: WBC
+    missing_percent: 17.89
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  PLT:
+    name: PLT
+    abbreviation: PLT
+    description: 观察日前一天的血小板计数
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: PLT
+    missing_percent: 17.93
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  HbA1C:
+    name: HbA1C
+    abbreviation: HbA1c
+    description: 观察日前一天的糖化血红蛋白值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: HBA1C
+    missing_percent: 19.7
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  CRP:
+    name: CRP
+    abbreviation: "hs-CRP"
+    description: 观察日前一天的C反应蛋白值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "HS-CRP"
+    missing_percent: 76.07
+    imputation_strategy: "Excluded"
+    note: "缺失率>25%，建模中排除"
+    data_reference: []
+    
+  ALT:
+    name: ALT
+    abbreviation: ALT
+    description: 观察日前一天的丙氨酸氨基转移酶值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: ALT
+    missing_percent: 19.23
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  AST:
+    name: AST
+    abbreviation: AST
+    description: 观察日前一天的天冬氨酸氨基转移酶值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: AST
+    missing_percent: 19.71
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  GGT:
+    name: GGT
+    abbreviation: GGT
+    description: 观察日前一天的γ-谷氨酰转肽酶
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: GGT
+    missing_percent: 19.95
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  ALB:
+    name: ALB
+    abbreviation: ALB
+    description: 观察日前一天的白蛋白值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: ALB
+    missing_percent: 19.06
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  SCr:
+    name: SCr
+    abbreviation: SCr
+    description: 观察日前一天的肌酐值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: SCr
+    missing_percent: 18.46
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  eGFR:
+    name: eGFR
+    abbreviation: eGFR
+    description: 观察日前一天的eGFR值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: EGFR
+    missing_percent: 18.95
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  Hb:
+    name: Hb
+    abbreviation: Hb
+    description: 观察日前一天的血红蛋白计数值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: Hb
+    missing_percent: 17.89
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+
+# =========================
+# 4. 降糖药物方案 (Antidiabetic Medications)
+# =========================
+antidiabetic_medications_variables:
+  二甲双胍:
+    name: 二甲双胍
+    abbreviation: Metformin
+    description: 观察日前一天是否使用二甲双胍
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: METFORMIN
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  磺脲类:
+    name: 磺脲类
+    abbreviation: SUs
+    description: 观察日前一天是否使用磺脲类
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: SUS
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  格列奈类:
+    name: 格列奈类
+    abbreviation: Glinides
+    description: 观察日前一天是否使用格列奈类
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: GLINIDES
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  TZDs:
+    name: TZDs
+    abbreviation: TZDs
+    description: 观察日前一天是否使用噻唑烷二酮类
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: TZDs
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  AGIs:
+    name: AGIs
+    abbreviation: AGIs
+    description: 观察日前一天是否使用α-葡萄糖苷酶抑制剂
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: AGIs
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  DDP-4i:
+    name: "DDP-4i"
+    abbreviation: "DPP-4i"
+    description: 观察日前一天是否使用二肽基肽酶-4抑制剂
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: "DPP-4I"
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  SGLT2i:
+    name: SGLT2i
+    abbreviation: SGLT2i
+    description: 观察日前一天是否使用钠-葡萄糖协同转运蛋白2抑制剂
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名+J列药物商品名，关键词匹配（特例：J列=艾托格列净(捷诺妥)且K列=NA）"
+    data_in_models: SGLT2I
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  餐时胰岛素:
+    name: 餐时胰岛素
+    abbreviation: "Mealtime Insulin"
+    description: 观察日前一天是否使用餐时胰岛素
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名+J列药物商品名+R列给药途径，关键词匹配（特例：K=胰岛素+J=胰岛素注射液+R∈{皮下,皮内,肌肉注射}）"
+    data_in_models: "MEALTIME_INSULIN"
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  预混胰岛素:
+    name: 预混胰岛素
+    abbreviation: "Premixed Insulin"
+    description: 观察日前一天是否使用预混胰岛素
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: "PREMIXED_INSULIN"
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  双胰岛素:
+    name: 双胰岛素
+    abbreviation: "Dual Insulin"
+    description: 观察日前一天内是否使用双胰岛素
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名+J列药物商品名，关键词匹配（特例：K=胰岛素+J=德谷门冬双胰岛素(诺和佳（畅充）)）"
+    data_in_models: "DUAL_INSULIN"
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+    
+  基础胰岛素:
+    name: 基础胰岛素
+    abbreviation: "Basal Insulin"
+    description: 观察日前一天是否使用基础胰岛素
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "K列药物成分名，关键词匹配"
+    data_in_models: "BASAL_INSULIN"
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference:
+      - "Health/基线数据.test_药品类医嘱.csv"
+      - "HYPO/基线数据.低血糖_药品类医嘱_副本.csv"
+
+# =========================
+# 5. 生命体征 (Vital Signs)
+# =========================
+vital_signs_variables:
+  体温:
+    name: 体温
+    abbreviation: T
+    description: 观察日前一天第一次测量的体温值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: T
+    missing_percent: 0.7
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  脉搏:
+    name: 脉搏
+    abbreviation: P
+    description: 观察日前一天第一次测量的脉搏值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: P
+    missing_percent: 0.8
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  呼吸:
+    name: 呼吸
+    abbreviation: RR
+    description: 观察日前一天第一次测量的呼吸频率值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: RR
+    missing_percent: 0.7
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  收缩压:
+    name: 收缩压
+    abbreviation: SBP
+    description: 观察日前一天第一次测量的收缩压值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: SBP
+    missing_percent: 0.3
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+    
+  舒张压:
+    name: 舒张压
+    abbreviation: DBP
+    description: 观察日前一天第一次测量的舒张压值
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: DBP
+    missing_percent: 0.3
+    imputation_strategy: "Multiple Imputation"
+    data_reference: []
+
+# =========================
+# 6. 血糖衍生指标 (Glycemic Metrics)
+# =========================
+glycemic_metrics_variables:
+  H24MIN:
+    name: "24HMIN"
+    abbreviation: "24HMIN"
+    description: 观察日前一天最低血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "24HMIN"
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  H24MAX:
+    name: "24HMAX"
+    abbreviation: "24HMAX"
+    description: 观察日前一天最高血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "24HMAX"
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  H24MEAN:
+    name: "24HMEAN"
+    abbreviation: "24HMEAN"
+    description: 观察日前一天评价血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "24HMEAN"
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  H24CV:
+    name: "24HCV"
+    abbreviation: "24HCV"
+    description: 观察日前一天血糖变异系数
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: "24HCV"
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  INPMIN:
+    name: INPMIN
+    abbreviation: INPMIN
+    description: 入院来最低血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: INPMIN
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  INPMAX:
+    name: INPMAX
+    abbreviation: INPMAX
+    description: 入院来最高血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: INPMAX
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  INPMEAN:
+    name: INPMEAN
+    abbreviation: INPMEAN
+    description: 入院来平均血糖测量值
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: INPMEAN
+    missing_percent: 3.2
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+    
+  INPCV:
+    name: INPCV
+    abbreviation: INPCV
+    description: 入院来血糖变异系数
+    data_category: 动态数据
+    data_type: 浮点型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: INPCV
+    missing_percent: 6.8
+    imputation_strategy: "Forward fill / Multiple Imputation"
+    data_reference: []
+
+# =========================
+# 7. 住院相关指标 (Hospitalization)
+# =========================
+hospitalization_variables:
+  INPHYPOO:
+    name: INPHYPOO
+    abbreviation: INPHYPOO
+    description: 本次住院前几天出现过低血糖
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: INPHYPOO
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference: []
+    
+  PREHYPO:
+    name: PREHYPO
+    abbreviation: PREHYPO
+    description: 之前在本机构住院时候出现过低血糖
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: PREHYPO
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference: []
+    
+  住院日序数:
+    name: 住院日序数
+    abbreviation: HospDay
+    description: 测量BG对应的住院日
+    data_category: 动态数据
+    data_type: 整数型数值变量
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: HOSPDAY
+    missing_percent: 0.1
+    imputation_strategy: "Forward fill"
+    data_reference: []
+    
+  禁食:
+    name: 禁食
+    abbreviation: NPO
+    description: 观察日前一天是否禁食
+    data_category: 动态数据
+    data_type: "二元类别变量 (0=无, 1=有)"
+    data_in_ehr: "待检查CSV文件"
+    data_in_models: NPO
+    missing_percent: 0.0
+    imputation_strategy: N/A
+    data_reference: []
+
+# =========================
+# 8. 24h血糖轨迹特征 (24h Glucose Trajectory Features)
+# =========================
+glucose_trajectory_features:
+  glucose_change:
+    name: glucose_change
+    abbreviation: "glucose_change"
+    description: 血糖变化（G_t - G_{t-1}）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "G_t - G_{t-1}"
+    time_window: "24h / 7d"
+    unit: mmol/L
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_CHANGE
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  glucose_amplitude:
+    name: glucose_amplitude
+    abbreviation: "glucose_amplitude"
+    description: 血糖振幅（峰值到谷值的幅度）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "max(G) - min(G)"
+    time_window: "24h / 7d"
+    unit: mmol/L
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_AMPLITUDE
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  glucose_ratio:
+    name: glucose_ratio
+    abbreviation: "glucose_ratio"
+    description: 峰谷比（最高值/最低值）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "max(G) / min(G)"
+    time_window: "24h / 7d"
+    unit: ratio
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_RATIO
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  glucose_trend:
+    name: glucose_trend
+    abbreviation: "glucose_trend"
+    description: 线性趋势（血糖随时间的变化斜率）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "slope of polyfit(range, G, 1)"
+    time_window: "24h / 7d"
+    unit: slope
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_TREND
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  glucose_volatility:
+    name: glucose_volatility
+    abbreviation: "glucose_volatility"
+    description: 血糖波动性（变异系数）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "σ(G) / Ḡ"
+    time_window: "24h / 7d"
+    unit: coefficient
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_VOLATILITY
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  time_weighted_mean:
+    name: time_weighted_mean
+    abbreviation: "time_weighted"
+    description: 时间衰减加权均值
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "∑(G_i * e^{-i/N}) / ∑(e^{-i/N})"
+    time_window: "24h / 7d"
+    unit: mmol/L
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: TIME_WEIGHTED
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  quadratic_trend:
+    name: quadratic_trend
+    abbreviation: "time_trend"
+    description: 二次趋势（捕捉血糖曲线的曲率）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "quadratic coefficient of polyfit(range, G, 2)"
+    time_window: "24h / 7d"
+    unit: coefficient
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: TIME_TREND
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  main_frequency_component:
+    name: main_frequency_component
+    abbreviation: "time_periodic"
+    description: 主频率成分（血糖信号的主导频率）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "FFT(G)_1"
+    time_window: "24h / 7d"
+    unit: frequency
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: TIME_PERIODIC
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  time_weighted_average:
+    name: time_weighted_average
+    abbreviation: "glucose_twa"
+    description: 时间加权平均血糖
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "∑(G_i * i * w_i) / ∑w_i, w_i = e^{-i/N}"
+    time_window: "24h / 7d"
+    unit: mmol/L
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: GLUCOSE_TWA
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  stability_index:
+    name: stability_index
+    abbreviation: "stability_index"
+    description: 稳定性指数（值越高越稳定）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "1 / (1 + σ(G))"
+    time_window: "24h / 7d"
+    unit: index
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: STABILITY_INDEX
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  volatility_index:
+    name: volatility_index
+    abbreviation: "volatility_index"
+    description: 波动性指数（标准化变异）
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "σ(G) / Ḡ"
+    time_window: "24h / 7d"
+    unit: index
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: VOLATILITY_INDEX
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+    
+  log_transformed_mean:
+    name: log_transformed_mean
+    abbreviation: "log_glucose"
+    description: 对数变换均值
+    data_category: 24h血糖轨迹特征
+    data_type: 浮点型数值变量
+    formula: "log(Ḡ + 1)"
+    time_window: "24h"
+    unit: log(mmol/L)
+    data_in_ehr: "从24小时血糖时间序列计算"
+    data_in_models: LOG_GLUCOSE
+    missing_percent: null
+    imputation_strategy: null
+    data_reference: []
+
+# =========================
+# 9. 数据来源说明
+# =========================
+data_source_info:
+  csv_folders:
+    - "指标数据_基线数据_1家医院_分组1_低血糖预测模型-正常血糖1_2024-04-06 140118_10"
+    - "指标数据_基线数据_1家医院_分组1_低血糖风险预测模型-低血糖_2024-04-06 140331_83"
+    - "指标数据_基线数据_1家医院_分组1_低血糖预测模型-正常血糖2_2024-02-06 183001_21"
+    - "指标数据_基线数据_1家医院_分组1_低血糖风险预测模型-低血糖_2024-02-06 183111_28"
+    - "指标数据_基线数据_1家医院_分组1_低血糖预测模型-正常血糖1_2024-02-05 155459_39"
+  
+  csv_file_types:
+    - "全部诊断.csv"
+    - "药品类医嘱.csv"
+    - "非药品类医嘱.csv"
+    - "其他检验.csv"
+    - "其他检验_(1).csv"
+    - "其他检验_(2).csv"
+    - "其他检验_(3).csv"
+    - "生化检查.csv"
+    - "血常规.csv"
+    - "血糖单.csv"
+    - "糖代谢测定.csv"
+    - "C反应蛋白检测.csv"
+    - "入院记录.csv"
+    - "生命体征.csv"
+    - "住院.csv"
+    - "基线数据.csv"
+    - "基线数据.test.csv"
+  
+  note: "data_reference字段待后续从CSV文件逐一检查后补充，列出所有包含该变量的CSV文件路径"
+
+# =========================
+# 10. 变量命名规范
+# =========================
+variable_naming_conventions:
+  name_field:
+    description: "变量名，来自variables.docx附录B表格的'变量名'列"
+    example: "性别、年龄、TBIL、INPMEAN等"
+    
+  abbreviation_field:
+    description: "英文缩写，用于代码和建模"
+    example: "Sex、Age、TBIL、INPMEAN等"
+    
+  description_field:
+    description: "具体解释，来自variables.docx附录B表格的'具体解释'列"
+    example: "患者性别、入院时的年龄等"
+    
+  data_category_field:
+    description: "数据分类：静态数据/动态数据/24h血糖轨迹特征"
+    categories:
+      static: "静态数据 - 患者基本信息，住院期间不变化（如：人口学信息、合并疾病）"
+      dynamic: "动态数据 - 随时间变化的指标（如：实验室检查、生命体征、药物使用、血糖衍生指标、住院相关指标）"
+      glucose_trajectory: "24h血糖轨迹特征 - 从24小时血糖时间序列中提取的特征（如：血糖变化、振幅、趋势等）"
+    
+  data_in_ehr_field:
+    description: "EHR中的原始数据，待从CSV文件逐一检查后补充"
+    note: "需要检查每个CSV文件，确定变量在EHR中的原始列名和格式"
+    
+  data_type_field:
+    description: "数据类型，包含变量类型和编码信息（用于代码实现）"
+    examples:
+      binary: "二元类别变量 (0=无, 1=有) 或 二元类别变量 (0=女, 1=男)"
+      continuous: "浮点型数值变量、整数型数值变量"
+    note: "binary变量的编码信息包含在data_type字段中，便于代码实现时进行热值编码"
+    
+  data_in_models_field:
+    description: "代码用，建模中的表示方式，使用英文缩写（abbreviation）"
+    example: "SEX、AGE、TBIL、INPMEAN、GLUCOSE_CHANGE等"
+    note: "在代码中直接使用此字段的值作为变量名"
+    
+  data_reference_field:
+    description: "数据来源，列出所有包含该变量的CSV文件"
+    format: "相对路径或绝对路径"
+    example: 
+      - "指标数据_基线数据_1家医院_分组1_低血糖预测模型-正常血糖1_2024-04-06 140118_10/基线数据.test_全部诊断.csv"
+      - "指标数据_基线数据_1家医院_分组1_低血糖风险预测模型-低血糖_2024-04-06 140331_83/基线数据.低血糖_全部诊断.csv"

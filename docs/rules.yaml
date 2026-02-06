@@ -1,0 +1,301 @@
+meta:
+  description: 数据清洗与特征构建规则（来源：数据清洗规则总表+说明-小邱）
+  version: v2.0
+  language: zh-CN
+  last_updated: "2026-02-03"
+  reference_docs:
+    - "数据清洗规则总表 v2026.01.25"
+    - "说明-小邱.docx"
+    - "variables.docx 附录B"
+  pipeline: "run_all.sh 依次执行步骤1a～7"
+
+# =========================
+# 1. 研究日 & 血糖基础规则
+# =========================
+study_day:
+  anchor_hour: 8              # 研究日以 08:00 为界
+  hi_cap: 40                  # 血糖 HI 统一按 40 处理
+  hypoglycemia_threshold: 3.9 # 低血糖阈值
+
+# =========================
+# 2. 医嘱撤销规则
+# =========================
+order_status:
+  note: "以下列名为清洗后的 CSV 列名"
+  drug_orders:
+    cancelled_values: ["已撤销"]
+    cancelled_column: "order_status"
+    handling: exclude_from_exposure   # 视为未用药，不纳入统计
+
+  non_drug_orders:
+    cancelled_values: ["已撤销"]
+    cancelled_column: "order_status"
+    handling: exclude_from_event      # 视为未执行
+
+# =========================
+# 3. 口服降糖药分类（K 列）
+# =========================
+oral_hypoglycemics:
+  ingredient_column: "inn_name"
+  drug_name_column: "trade_name"
+  note: "先排除 order_status='已撤销'，然后在 inn_name 对药物成分名进行筛选"
+
+  categories:
+    metformin:
+      keywords: ["二甲双胍", "吡格列酮二甲双胍", "沙格列汀二甲双胍", "西格列汀二甲双胍"]
+      class_name: "二甲双胍类"
+
+    sulfonylureas:
+      keywords: ["格列吡嗪", "格列美脲", "格列齐特"]
+      class_name: "磺脲类"
+
+    glinides:
+      keywords: ["瑞格列奈"]
+      class_name: "格列奈类"
+      note: "医生文档中只提到瑞格列奈，但关键词可以用'格列奈'匹配更多"
+
+    tzd:
+      keywords: ["吡格列酮", "吡格列酮二甲双胍"]
+      class_name: "噻唑烷二酮类"
+      note: "吡格列酮二甲双胍同时归入二甲双胍类和TZD类"
+
+    alpha_glucosidase_inhibitor:
+      keywords: ["阿卡波糖", "伏格列波糖", "米格列醇"]
+      class_name: "α-葡萄糖苷酶抑制剂"
+
+    dpp4:
+      keywords: ["利格列汀", "沙格列汀", "沙格列汀二甲双胍", "维格列汀", "西格列汀", "西格列汀二甲双胍"]
+      class_name: "二肽基肽酶-4抑制剂"
+      note: "沙格列汀二甲双胍、西格列汀二甲双胍同时归入二甲双胍类和DPP-4i类"
+
+    sglt2:
+      keywords: ["达格列净", "卡格列净", "恩格列净"]
+      class_name: "钠-葡萄糖协同转运蛋白2抑制剂"
+      special_case:
+        when:
+          drug_name_equals: "艾托格列净(捷诺妥)"
+          ingredient_is_na: true
+        treat_as: "艾托格列净"
+        note: "因为他在K列是NA，也可以手动在K列把这部分NA改成艾托格列净"
+
+# =========================
+# 4. 胰岛素分类规则
+# =========================
+insulin:
+  ingredient_column: "inn_name"
+  drug_name_column: "trade_name"
+  route_column: "drug_administration_method"
+  note: "先排除 order_status='已撤销'，然后在 inn_name 筛选"
+
+  insulin_identifier: "胰岛素"
+
+  exclude_routes:
+    - "辅药"
+    - "静脉滴注"
+    - "静脉注射"
+    - "静脉泵入"
+
+  special_mappings:
+    "德谷门冬双胰岛素(诺和佳（畅充）)": "dual"
+    note: "当K列为'胰岛素'时的特殊规则"
+
+  injection_liquid_rule:
+    drug_name: "胰岛素注射液"
+    prandial_routes: ["皮下注射", "皮内注射", "肌肉注射"]
+    exclude_routes: ["辅药", "静脉滴注", "静脉注射"]
+    note: "K列='胰岛素'+J列='胰岛素注射液'的特殊规则"
+
+  categories:
+    prandial:
+      keywords: ["赖脯胰岛素", "重组人胰岛素r", "门冬胰岛素"]
+      class_name: "餐时胰岛素"
+      note: "K列关键词匹配，可用'门冬'、'赖脯'简化匹配"
+
+    basal:
+      keywords: ["地特胰岛素", "德谷胰岛素", "甘精胰岛素", "精蛋白重组人胰岛素n", "重组甘精胰岛素"]
+      class_name: "基础胰岛素"
+      note: "K列关键词匹配，可用'甘精'、'地特'、'德谷'简化匹配"
+
+    premixed:
+      keywords: ["30/70混合重组人胰岛素", "精蛋白生物合成人胰岛素30r", "精蛋白重组人胰岛素(50/50)", "精蛋白锌重组人胰岛素70/30", "精蛋白锌重组赖脯胰岛素25r", "精蛋白锌重组赖脯胰岛素50r", "门冬胰岛素30"]
+      class_name: "预混胰岛素"
+      note: "K列关键词匹配，可用'预混'、'30R'、'50R'简化匹配"
+
+    dual:
+      description: "双胰岛素"
+      class_name: "双胰岛素"
+      special_rule: "①K列='胰岛素'+J列='德谷门冬双胰岛素(诺和佳（畅充）)' → 双胰岛素"
+  
+  special_rules:
+    rule1:
+      condition: "K='胰岛素' AND J='德谷门冬双胰岛素(诺和佳（畅充）)'"
+      result: "双胰岛素"
+    rule2:
+      condition: "K='胰岛素' AND J='胰岛素注射液' AND R∈{'皮下注射','皮内注射','肌肉注射'}"
+      result: "餐时胰岛素"
+    rule3:
+      condition: "K='胰岛素' AND J='胰岛素注射液' AND R∈{'辅药','静脉滴注','静脉注射',...}"
+      result: "不纳入统计，丢弃"
+
+# =========================
+# 5. 诊断与合并症（E 列）
+# =========================
+diagnosis:
+  diagnosis_column: "disease_name"
+
+  comorbidities:
+    diabetic_peripheral_vascular_disease:
+      any_of: ["糖尿病", "血管病"]
+      logic: "AND"  # 需同时包含两个关键词
+
+    diabetic_neuropathy:
+      any_of: ["糖尿病", "神经病"]
+      logic: "AND"  # 需同时包含两个关键词
+
+    diabetic_foot:
+      any_of: ["糖尿病", "足"]
+      logic: "AND"  # 需同时包含两个关键词
+
+    diabetic_nephropathy:
+      any_of: ["糖尿病", "肾病"]
+      logic: "AND"  # 需同时包含两个关键词
+
+    diabetic_retinopathy:
+      any_of: ["糖尿病", "视网膜"]
+      logic: "AND"  # 需同时包含两个关键词
+
+    hypertension:
+      any_of: ["高血压"]
+
+    hyperlipidemia:
+      any_of: ["高脂血症", "高胆固醇", "甘油三酯", "血脂异常"]
+
+    coronary_heart_disease:
+      any_of: ["冠状动脉", "冠心病", "心肌梗死", "心绞痛"]
+
+    malignant_tumor:
+      any_of: ["恶性肿瘤", "癌", "肉瘤", "白血病", "淋巴瘤"]
+
+    chronic_renal_failure:
+      any_of: ["慢性肾衰", "尿毒症", "慢性肾脏病4期", "慢性肾脏病5期", "慢性肾脏病 4期", "慢性肾脏病 5期"]
+
+    renal_replacement_therapy:
+      any_of: ["透析", "肾移植"]
+
+    type1_diabetes:
+      any_of: ["1型糖尿病", "I型糖尿病"]
+
+    cerebrovascular_event:
+      any_of: ["脑卒中", "脑血管意外", "脑梗", "脑出血", "蛛网膜下腔出血", "脑缺血"]
+      note: "新增合并症，2026-02-02"
+
+# =========================
+# 6. 手术判定（非药品医嘱）
+# =========================
+surgery:
+  order_type_column: "order_type"
+  order_name_column: "order_item_name"
+  cancelled_column: "order_status"
+
+  valid_order_type: "手术"
+
+  datetime_extract:
+    regex: "\\d{4}/\\d{1,2}/\\d{1,2}"
+
+  time_window:
+    start_hour: 8
+    duration_hours: 24
+
+  outputs:
+    surgery_flag: true
+    surgery_date: true
+  
+  note: "从I列提取日期（例如：拟2023/6/19 8:18:34局部麻醉... → 2023-06-19），时间窗为该日08:00-次日08:00"
+
+# =========================
+# 7. 排除规则（按住院段）
+# =========================
+exclusion:
+  unit: "admission_key"
+
+  diagnosis_exclusion:
+    pregnancy_diabetes:
+      keyword: "妊娠糖尿病"
+      require_contiguous: true
+      contiguous_length: 4
+      note: "【妊娠糖尿病】五个字需连续出现，「妊娠」「糖尿病」分开不算"
+      action: "删除该patient_sn+时间段的所有记录，但保留该patient_sn+其他时间段"
+
+    death:
+      keyword: "死亡"
+      note: "字段包含「死亡」即排除"
+      action: "删除该patient_sn+时间段的所有记录，但保留该patient_sn+其他时间段"
+
+  icu_exclusion:
+    source_table: "non_drug_orders"
+    column: "P"
+    note: "开立科室列，不排除已撤销（或可排除，但原始数据无撤销记录）"
+    departments:
+      - "CCU病房（心血管内科）（外滩）"
+      - "CCU（月湖）"
+      - "EICU（月湖）"
+      - "EICU（海曙）"
+      - "监护病房（外滩）"
+      - "重症医学科（外滩）"
+      - "重症医学科（方桥）"
+      - "重症监护一（月湖）"
+      - "重症监护一（海曙）"
+      - "重症监护二（月湖）"
+      - "重症监护二（海曙）"
+
+# =========================
+# 8. 匿名化规则
+# =========================
+anonymization:
+  note: "用户要求暂不执行匿名化，用于计算人数"
+  
+  drop_column_patterns:
+    - "住院号"
+    - "vsn"
+    - "vsn_*"
+    - "IP|*"
+    - "LZ|*"
+    - "inpatient_no_id"
+
+  date_truncation:
+    birth_date:
+      keep: "year-month"
+      format: "YYYY-MM"
+    admission_date:
+      keep: "year-month-day"
+      format: "YYYY-MM-DD"
+
+  lab_files:
+    birth_date_column: "D"
+    drop_columns: ["G"]
+    note: "检查文件通用脱敏：D列出生日期→年月，G列编号→整列删除"
+
+# =========================
+# 9. 分组规则
+# =========================
+grouping:
+  unit: "admission_key"
+  note: "拼数据时，以 admission_key 作为住院段唯一标识"
+
+  hypoglycemia_group:
+    condition: "any_glucose <= 3.9"
+    description: "某次住院期间任意一次血糖≤3.9 mmol/L → 该次住院归入低血糖组"
+
+  normal_group:
+    condition: "all_glucose > 3.9"
+    description: "某次住院期间所有血糖>3.9 mmol/L → 该次住院归入正常血糖组"
+
+  allow_merge_multiple_batches: true
+
+# =========================
+# 10. 其他清洗
+# =========================
+misc:
+  drug_orders:
+    drop_columns:
+      - "order_group_no"   # 同组表示

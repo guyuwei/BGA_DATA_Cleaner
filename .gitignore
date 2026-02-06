@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+
+# Virtual environments
+bga_env/
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Build artifacts
+dist/
+dist_release/
+build/pyinstaller/
+
+# Data outputs
+Health/
+HYPO/
+原始数据/
+*.csv
+*.zip
+
+# Logs
+*.log

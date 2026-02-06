@@ -1,0 +1,338 @@
+================================================================================
+所有文件列名汇总（ABC编号）
+================================================================================
+
+说明:
+1) 列名来自步骤1输出的 CSV 表头，保持原样（含历史命名与符号）。
+2) 本表用于界面“洗前与现列名”对照与人工核查，不做字段重命名。
+
+Health 组:
+================================================================================
+
+CRP.csv (18 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_lab_crp_tests
+  D  . CRP_test_time
+  E  . CRP_pure_item_name
+  F  . CRP_item_name
+  G  . CRP_qualitative_result
+  H  . CRP_test_result
+  I  . hs-CRP_test_time
+  J  . hs-CRP_pure_item_name
+  K  . hs-CRP_item_name
+  L  . hs-CRP_qualitative_result
+  M  . hs-CRP_test_result
+  N  . hs-CRP_test_time.1
+  O  . hs-CRP)-静脉血(空腹_pure_item_name
+  P  . hs-CRP)-静脉血(空腹_item_name
+  Q  . hs-CRP_qualitative_result.1
+  R  . hs-CRP_test_result.1
+
+住院.csv (12 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_first_page_record
+  D  . visit_date
+  E  . inpatient_no
+  F  . visit_department
+  G  . icd10_name
+  H  . icd10_code
+  I  . age
+  J  . discharge_department
+  K  . inhospital_length
+  L  . is_icu_transfer
+
+入院记录.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_admission_record
+  D  . admission_time
+  E  . pre_disease_name
+  F  . is_smoking
+  G  . is_drinking
+
+其他检验.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_lab_other
+  C  . test_time
+  D  . pure_item_name
+  E  . item_name
+  F  . qualitative_result
+  G  . test_result
+
+生化.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_lab_biochemical_tests
+  C  . test_time
+  D  . pure_item_name
+  E  . item_name
+  F  . qualitative_result
+  G  . test_result
+
+生命体征.csv (12 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_vital_sign
+  D  . temperature
+  E  . pulse
+  F  . heart_rate
+  G  . respiratory_rate
+  H  . diastolic_pressure
+  I  . systolic_pressure
+  J  . height
+  K  . weight
+  L  . body_mass_index
+
+糖代谢.csv (8 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_lab_glucose_metabolism_test
+  D  . HbA1c_test_time
+  E  . HbA1c_pure_item_name
+  F  . HbA1c_item_name
+  G  . HbA1c_qualitative_result
+  H  . HbA1c_test_result
+
+药品医嘱.csv (25 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_medicinal_order
+  C  . prescribed_time
+  D  . start_time
+  E  . stop_time
+  F  . order_group_no
+  G  . trade_name
+  H  . common_name
+  I  . inn_name
+  J  . class_name
+  K  . dosage_form
+  L  . spec
+  M  . drug_dosage_per_use
+  N  . drug_dosage_per_use_unit
+  O  . drug_frequency
+  P  . drug_administration_method
+  Q  . patient_instruction
+  R  . total_dosage
+  S  . total_dosage_unit
+  T  . long_term_or_temporary
+  U  . order_status
+  V  . source_table
+  W  . test_gender_time_quantum1
+  X  . test_birth_date_time_quantum1
+  Y  . test_death_time_quantum1
+
+血常规.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_lab_blood_routine_examination
+  C  . test_time
+  D  . pure_item_name
+  E  . item_name
+  F  . qualitative_result
+  G  . test_result
+
+血糖.csv (6 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . test_birth_date_time_quantum1
+  C  . vsn_glu_record
+  D  . exam_time
+  E  . blood_sugar
+  F  . blood_ketone
+
+诊断.csv (3 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_diagnosis
+  C  . disease_name
+
+非药品医嘱.csv (13 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_non_drug_order
+  C  . prescribed_time
+  D  . start_time
+  E  . stop_time
+  F  . order_type
+  G  . order_item_name
+  H  . quantity
+  I  . quantity_unit
+  J  . long_term_or_temporary
+  K  . frequency
+  L  . order_status
+  M  . visit_type
+
+================================================================================
+HYPO 组:
+================================================================================
+
+CRP.csv (18 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_lab_crp_tests
+  D  . CRP_test_time
+  E  . CRP_pure_item_name
+  F  . CRP_item_name
+  G  . CRP_qualitative_result
+  H  . CRP_test_result
+  I  . hs-CRP_test_time
+  J  . hs-CRP_pure_item_name
+  K  . hs-CRP_item_name
+  L  . hs-CRP_qualitative_result
+  M  . hs-CRP_test_result
+  N  . hs-CRP_test_time.1
+  O  . hs-CRP)-静脉血(空腹_pure_item_name
+  P  . hs-CRP)-静脉血(空腹_item_name
+  Q  . hs-CRP_qualitative_result.1
+  R  . hs-CRP_test_result.1
+
+住院.csv (12 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_first_page_record
+  D  . visit_date
+  E  . inpatient_no
+  F  . visit_department
+  G  . icd10_name
+  H  . icd10_code
+  I  . age
+  J  . discharge_department
+  K  . inhospital_length
+  L  . is_icu_transfer
+
+入院记录.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_admission_record
+  D  . admission_time
+  E  . pre_disease_name
+  F  . is_smoking
+  G  . is_drinking
+
+其他检验.csv (7 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_lab_other
+  C  . test_time
+  D  . pure_item_name
+  E  . item_name
+  F  . qualitative_result
+  G  . test_result
+
+生化.csv (8 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_lab_biochemical_tests
+  D  . test_time
+  E  . pure_item_name
+  F  . item_name
+  G  . qualitative_result
+  H  . test_result
+
+生命体征.csv (12 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_vital_sign
+  D  . temperature
+  E  . pulse
+  F  . heart_rate
+  G  . respiratory_rate
+  H  . diastolic_pressure
+  I  . systolic_pressure
+  J  . height
+  K  . weight
+  L  . body_mass_index
+
+糖代谢.csv (8 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_lab_glucose_metabolism_test
+  D  . HbA1c_test_time
+  E  . HbA1c_pure_item_name
+  F  . HbA1c_item_name
+  G  . HbA1c_qualitative_result
+  H  . HbA1c_test_result
+
+药品医嘱.csv (24 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_medicinal_order
+  C  . prescribed_time
+  D  . start_time
+  E  . stop_time
+  F  . order_group_no
+  G  . trade_name
+  H  . common_name
+  I  . inn_name
+  J  . class_name
+  K  . dosage_form
+  L  . spec
+  M  . drug_dosage_per_use
+  N  . drug_dosage_per_use_unit
+  O  . drug_frequency
+  P  . drug_administration_method
+  Q  . patient_instruction
+  R  . long_term_or_temporary
+  S  . order_status
+  T  . 低血糖_gender_time_quantum1
+  U  . 低血糖_birth_date_time_quantum1
+  V  . 低血糖_death_time_quantum1
+  W  . total_dosage
+  X  . total_dosage_unit
+
+血常规.csv (8 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_lab_blood_routine_examination
+  D  . test_time
+  E  . pure_item_name
+  F  . item_name
+  G  . qualitative_result
+  H  . test_result
+
+血糖.csv (6 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . 低血糖_birth_date_time_quantum1
+  C  . vsn_glu_record
+  D  . exam_time
+  E  . blood_sugar
+  F  . blood_ketone
+
+诊断.csv (3 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_diagnosis
+  C  . disease_name
+
+非药品医嘱.csv (14 列):
+------------------------------------------------------------
+  A  . admission_key
+  B  . vsn_non_drug_order
+  C  . prescribed_time
+  D  . start_time
+  E  . stop_time
+  F  . order_type
+  G  . order_item_name
+  H  . quantity
+  I  . quantity_unit
+  J  . long_term_or_temporary
+  K  . frequency
+  L  . order_status
+  M  . visit_type
+  N  . prescribed_department_name
