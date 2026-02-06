@@ -37,7 +37,7 @@ mkdir "%STAGE%\原始数据\%DIR5%"
 %PYTHON% -m pip install -q --upgrade pip
 %PYTHON% -m pip install -q -r "%ROOT%\build\requirements.txt" pyinstaller
 
-%PYTHON% -m PyInstaller --noconfirm --onedir --windowed ^
+%PYTHON% -m PyInstaller --noconfirm --onefile --windowed ^
   --name "%APP_NAME%" ^
   --distpath "%DIST%" ^
   --workpath "%ROOT%\build\pyinstaller" ^
@@ -45,7 +45,7 @@ mkdir "%STAGE%\原始数据\%DIR5%"
   "%ROOT%\app\main.py"
 
 mkdir "%RELEASE%"
-if exist "%DIST%\%APP_NAME%" xcopy "%DIST%\%APP_NAME%" "%RELEASE%\%APP_NAME%" /E /I /Y >nul
+if exist "%DIST%\%APP_NAME%.exe" copy /Y "%DIST%\%APP_NAME%.exe" "%RELEASE%\%APP_NAME%.exe" >nul
 xcopy "%STAGE%\docs" "%RELEASE%\docs" /E /I /Y >nul
 xcopy "%STAGE%\原始数据" "%RELEASE%\原始数据" /E /I /Y >nul
 for %%F in ("%STAGE%\步骤*_*.py") do copy /Y "%%F" "%RELEASE%" >nul
