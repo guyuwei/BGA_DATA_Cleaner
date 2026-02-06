@@ -43,5 +43,5 @@ jobs:
       - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
-          name: EHR数据清洗-dmg
+          name: EHR-dmg
           path: dist_release/EHR数据清洗.dmg
